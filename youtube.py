@@ -1,25 +1,27 @@
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
-import time
+import requests
+from bs4 import BeautifulSoup
 
-# 크롬 드라이버 설정 (Service 객체 사용)
-service = Service(ChromeDriverManager().install())
-driver = webdriver.Chrome(service=service)
+# 유튜브 급상승 페이지 URL
+url = 'https://www.youtube.com/feed/trending'
 
-# 유튜브 인기 급상승 페이지 열기
-driver.get("https://www.youtube.com/feed/trending")
-time.sleep(5)  # 페이지 로딩 대기
+# 헤더 정보 (유튜브에서 봇 차단을 피하기 위해 설정)
+headers = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
+}
 
-# 인기 동영상 제목과 채널명 추출
-videos = driver.find_elements(By.CSS_SELECTOR, "h3 a#video-title")
-channels = driver.find_elements(By.CSS_SELECTOR, "ytd-channel-name a")
+# 요청 보내기
+response = requests.get(url, headers=headers)
+
+# HTML 파싱
+soup = BeautifulSoup(response.text, 'html.parser')
+
+# 급상승 동영상 정보 추출 (예: 제목, 링크)
+video_items = soup.find_all('ytd-video-renderer')
 
 # 데이터 출력
-for i in range(10):  # 상위 10개만 출력
-    print(f"{i+1}위: {videos[i].text} - {channels[i].text}")
-
-# 드라이버 종료
-driver.quit()
-
+for video in video_items:
+    title = video.find('a', {'id': 'video-title'})
+    if title:
+        video_title = title.text
+        video_url = 'https://www.youtube.com' + title['href']
+        print(f"제목: {video_title}\nURL: {video_url}\n")
