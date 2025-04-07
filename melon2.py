@@ -44,14 +44,22 @@ print(f"당신이 입력한 값은? {n}")
 # 멜론 100 출력
 if n == "1":
     print("멜론 100")
+    #수집한 데이터를 출력합니다.
+    for i in range(100):
+        print(f"{songs[i][0]}. {songs[i][1]} - {songs[i][2]}")
+
 #else:
 #    print("1이 아닙니다")
 # 만약에 2를 입력하면 
 # 멜론 50 출력
 elif n == "2":
     print('멜론 50')
+    for i in range(50):
+        print(f"{songs[i][0]}. {songs[i][1]} - {songs[i][2]}")
 elif n == "3":
     print('멜론 10')
+    for i in range(10):
+        print(f"{songs[i][0]}. {songs[i][1]} - {songs[i][2]}")
 elif n == "4":
     ai_song = random.choice(songs)
     print(f"오늘의 추천곡: {ai_song[1]}-{ai_song[2]}")
@@ -63,6 +71,12 @@ elif n == "5":
         print("아이유 노래 리스트: 좋은날, 무릎, 밤편지")
     elif artist =="쏜애플":
         print("쏜애플 노래 리스트: 시퍼런 봄, 매미는 비가 와도 운다, 석류")
+    elif artist =="에스파":
+        print("에스파 노래 리스트: Whiplash, Next Level, Supernove")
+    elif artist =="데이식스":
+        print("데이식스 노래 리스트: 예뻤어, HAPPY, 한 페이지가 될 수 있게")
+    elif artist =="아이브":
+        print("아이브 노래 리스트: LOVE DIVE, After LIKE, I AM")
     else:
         print(f"{artist}의 노래 리스트를 찾을 수 없습니다")
 
