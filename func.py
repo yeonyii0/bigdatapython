@@ -93,6 +93,7 @@ def search_by_singer(name, user_name):
         if name.lower() in song['singer'].lower():
             print(f"{song['rank']}위: {song['title']} - {song['singer']}")
             found = True
+    print("지금 이 가수의 노래를 들으러 가보세요!")
 
     if not found:
         print(f"😢 아쉽지만 '{name}'님의 곡은 현재 차트에 없어요...")
@@ -116,4 +117,4 @@ def save_to_file(user_name):
             f.write(f"{song['rank']}위: {song['title']} - {song['singer']}\n")
 
     print("💾 차트 저장이 완료되었어요!")
-    print(f"{user_name}님을 위한 최신 멜론 TOP 100이 '{filename}'에 저장되었습니다 😊")
+    print(f"{user_name}님을 위한 최신 멜론 TOP 100이 '{filename}'에 저장되었습니다")
