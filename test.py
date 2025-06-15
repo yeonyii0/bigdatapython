@@ -204,3 +204,138 @@ while True:
     print("\n어떤 유형의 콘텐츠를 추천받고 싶으신가요?")
     print("1. 영화만\n2. 시리즈물만\n3. 상관없어요")
     choice = input("번호를 입력하세요: ")
+
+
+
+
+
+
+
+
+
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+import time
+
+# 플랫폼 이름 → 아이콘 클래스 매핑
+PLATFORM_ICON = {
+    "넷플릭스":   "kino-icon--netflix",
+    "티빙":      "kino-icon--tving",
+    "웨이브":      "kino-icon--wavve",
+    "쿠팡플레이":  "kino-icon--coupangplay",
+    "디즈니+":    "kino-icon--disney",
+    "라프텔":      "kino-icon--laftel"
+}
+
+# 지원 콘텐츠 종류 리스트
+CONTENT_TYPES = ["전체", "영화", "드라마", "애니메이션", "예능"]
+
+# 메인 스크래핑 함수
+def scrape_kino(chromedriver_path, platforms, content_type, genres):
+    opts = Options()
+    opts.add_argument("--window-size=375,812")
+    # opts.add_argument("--headless")  # 필요 시 주석 해제
+
+    driver = webdriver.Chrome(service=Service(chromedriver_path), options=opts)
+    wait = WebDriverWait(driver, 10)
+    driver.get("https://m.kinolights.com/discover/explore?hideBack=true")
+    time.sleep(2)
+
+    # 1) OTT 선택 (여러개 가능)
+    for plat in platforms:
+        cls = PLATFORM_ICON.get(plat)
+        if cls:
+            driver.execute_script(
+                f"document.querySelector('i.{cls}').parentElement.click();"
+            )
+            time.sleep(1)
+
+    # 2) 콘텐츠 종류 탭 클릭
+    if content_type in CONTENT_TYPES:
+        btn = wait.until(EC.element_to_be_clickable((
+            By.XPATH, f"//button[normalize-space()='{content_type}']"
+        )))
+        btn.click()
+        time.sleep(1)
+
+    # 3) 필터 모달 열기 및 장르 선택 (전체 제외)
+    if content_type != "전체":
+        # 필터 모달 열기
+        filter_btn = wait.until(EC.element_to_be_clickable((
+            By.CSS_SELECTOR, "button[data-component-id='filterModalButton']"
+        )))
+        filter_btn.click()
+        time.sleep(1)
+
+        # 장르가 지정된 경우에만 클릭
+        for genre_text in genres:
+            try:
+                gbtn = wait.until(EC.element_to_be_clickable((
+                    By.XPATH, f"//button[normalize-space()='{genre_text}']"
+                )))
+                gbtn.click()
+                time.sleep(0.5)
+            except:
+                print(f"⚠️ 장르 선택 실패: {genre_text}")
+
+        # 적용/확인 버튼 클릭 (장르 미지정 시에도 모달 닫기 용)
+        try:
+            apply_btn = driver.find_element(
+                By.XPATH, "//button[normalize-space()='적용' or normalize-space()='확인']"
+            )
+            apply_btn.click()
+            time.sleep(1)
+        except:
+            pass
+
+    # 4) ‘1,xxx개의 작품 보기’ 버튼 클릭
+    show_all = wait.until(EC.element_to_be_clickable((
+        By.XPATH, "//span[contains(text(),'개의 작품 보기')]"
+    )))
+    show_all.click()
+    time.sleep(2)
+
+    # 5) 결과 추출 및 출력
+    cards = driver.find_elements(By.CSS_SELECTOR, "a[id^='contentPosterCard-']")
+    print(f"총 {len(cards)}개 작품을 찾았습니다.\n")
+    for idx, card in enumerate(cards, 1):
+        title = card.find_element(By.CSS_SELECTOR, "span.body__title").text
+        try:
+            score = card.find_element(By.CSS_SELECTOR, "span.score__number").text + "%"
+        except:
+            score = "N/A"
+        print(f"{idx:3d}위 | {title} (신호등 평점: {score})")
+
+    driver.quit()
+
+# 예시 실행
+if __name__ == '__main__':
+    CHROMEDRIVER_PATH = r"C:\Users\82104\Desktop\moodpick\chromedriver.exe"
+
+    # 1) 복수 OTT, 영화, 멜로/로맨스 + 코미디
+    scrape_kino(
+        CHROMEDRIVER_PATH,
+        platforms=["넷플릭스", "티빙"],
+        content_type="영화",
+        genres=["멜로/로맨스", "코미디"]
+    )
+    print()
+    # 2) 단일 OTT, 애니메이션, 판타지 + 액션
+    scrape_kino(
+        CHROMEDRIVER_PATH,
+        platforms=["웨이브"],
+        content_type="애니메이션",
+        genres=["판타지", "액션"]
+    )
+    print()
+    # 3) 복수 OTT, 예능 (장르 없음)
+    scrape_kino(
+        CHROMEDRIVER_PATH,
+        platforms=["넷플릭스", "웨이브", "디즈니+"],
+        content_type="예능",
+        genres=[]
+    )
